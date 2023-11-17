@@ -8,7 +8,7 @@ library(dplyr)
 library(sf)
 
 # -------- Source outside files --------
-source("../../calanus_data/Code/int_chl.R")
+source("../calanus_data/Code/int_chl.R")
 
 # -------- Load environmental covariates --------
 #'@param fp_data <chr> file path to environmental covariate data

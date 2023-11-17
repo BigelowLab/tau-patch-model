@@ -24,17 +24,17 @@ source("load_covars.R")
 # Source covariate loading function
 source("get_climatology.R")
 # Source data binding function
-source("../../calanus_data/Code/bind_years.R")
+source("../calanus_data/Code/bind_years.R")
 
 # --- Example parameters for line-by-line function testing
 version = "vtest.percentile.method.pcal"
-fp_md = "../../calanus_data/Data/Databases/zooplankton_covar_data"
+fp_md = "../calanus_data/Data/Databases/zooplankton_covar_data"
 species = "ctyp"
 biomod_dataset = "ECOMON"
-fp_covars = "../../Env_Covars"
+fp_covars = "Env_Covars"
 env_covars = c("wind", "int_chl", "sst", "sst_grad", "jday", "uv_grad", "bat", "slope", "bots", "bott")
 years = 2003:2017
-fp_out = "../../Models.Test"
+fp_out = "../Models.Test"
 threshold = 0.9
 format_data = FALSE
 

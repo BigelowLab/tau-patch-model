@@ -14,19 +14,22 @@ source("buildZoopModel.R")
 
 # File path to configuration files
 fp_config <- "../Versions"
+if (!dir.exists(fp_config)) {
+  dir.create(fp_config)
+}
 # Whether to overwrite yaml file, if one already exists
 overwrite <- FALSE
 
 # Example parameters for test run
 params <- list(
   version = "vtest.percentile.method.ctyp",
-  fp_md = "../../calanus_data/Data/Databases/zooplankton_covar_data",
+  fp_md = "../calanus_data/Data/Databases/zooplankton_covar_data",
   species = "ctyp",
   biomod_dataset = "ECOMON",
-  fp_covars = "../../Env_Covars",
+  fp_covars = "Env_Covars",
   env_covars = c("int_chl", "sst", "bat"),
   years = 2003:2006,
-  fp_out = "../../Models.Test",
+  fp_out = "../Models.Test",
   threshold = 0.9, # Threshold computed at 90th percentile
   format_data = FALSE
 )
