@@ -31,7 +31,12 @@ version = "vtest.percentile.method.pcal"
 fp_md = "../calanus_data/Data/Databases/zooplankton_covar_data"
 species = "ctyp"
 biomod_dataset = "ECOMON"
-fp_covars = "Env_Covars"
+hostname = system("hostname", intern = TRUE)
+fp_covars = if (grepl("ecocast", hostname, fixed = TRUE)){
+  "/mnt/s1/projects/ecocast/projectdata/calanus4whales/Env_Covars"
+} else {
+  "Env_Covars"
+}
 env_covars = c("wind", "int_chl", "sst", "sst_grad", "jday", "uv_grad", "bat", "slope", "bots", "bott")
 years = 2003:2017
 fp_out = "../Models.Test"
