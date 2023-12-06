@@ -2,6 +2,7 @@
 # 6 Nov. 2023
 # Purpose: Run BIOMOD random forest to model zooplankton tau-patch
 # SETUP: Set working directory to source file location
+# Citation: Ross et al. (2023)
 
 # -------- Load libraries --------
 require(dplyr)
@@ -27,21 +28,16 @@ source("get_climatology.R")
 source("../calanus_data/Code/bind_years.R")
 
 # --- Example parameters for line-by-line function testing
-version = "vtest.percentile.method.pcal"
-fp_md = "../calanus_data/Data/Databases/zooplankton_covar_data"
-species = "ctyp"
-biomod_dataset = "ECOMON"
-hostname = system("hostname", intern = TRUE)
-fp_covars = if (grepl("ecocast", hostname, fixed = TRUE)){
-  "/mnt/s1/projects/ecocast/projectdata/calanus4whales/Env_Covars"
-} else {
-  "Env_Covars"
-}
-env_covars = c("wind", "int_chl", "sst", "sst_grad", "jday", "uv_grad", "bat", "slope", "bots", "bott")
-years = 2003:2017
-fp_out = "../Models.Test"
-threshold = 0.9
-format_data = FALSE
+# version = "vtest.ben.nick"
+# fp_md = "../calanus_data/Data/Databases/zooplankton_covar_data"
+# species = "ctyp"
+# biomod_dataset = "ECOMON"
+# fp_covars = "../Env_Covars"
+# env_covars = c("wind", "int_chl", "sst", "jday") #, "uv_grad", "bat", "slope", "bots", "bott")
+# years = 2003:2006
+# fp_out = "../Models.Test.ben.nick"
+# threshold = 0.9
+# format_data = FALSE
 
 
 # -------- Main function --------
@@ -50,7 +46,17 @@ format_data = FALSE
 #'@param species <chr> species to model; choices are "cfin", "ctyp", or "pseudo"
 #'@param biomod_dataset <chr> dataset from zooplankton database to be used; choices include "ECOMON", "ECOMON_STAGED", "CPR", etc.
 #'@param fp_covars <chr> file path to environmental covariate data
-#'@param env_covars <vector> vector of covariates to include in the model
+#'@param env_covars <vector> vector of covariates to include in the model; 
+#'all options for covars: "wind", "fetch", "chl", 
+#'                        "int_chl", "bots", "bott", 
+#'                        "sss", "sst", "lag_sst", 
+#'                        "sst_grad", "uv", "uv_grad", 
+#'                        "bat",  "dist", "slope"
+#'Derived covariate definitions:
+#'"int_chl" = time-integrated or cumulative chlorophyll
+#'"lag_sst" = sst with 1-month lag
+#'"sst_grad" = gradient of sst
+#'"uv_grad" = gradient of current velocity magnitude 
 #'@param years <vectors> years for which to run the model
 #'@param fp_out <chr> file path save the data to 
 #'@param threshold <numeric> threshold to model (individuals/m2); must be > 1
@@ -86,33 +92,12 @@ buildZoopModel <- function(version, fp_md, species, biomod_dataset, fp_covars, e
   
   # -------- Load model data --------
   if (length(years) == 1) {
-    md <- readr::read_csv(file.path(fp_md, paste0(years[1], ".csv"))) %>% 
+    md <- readr::read_csv(file.path(fp_md, paste0(years[1], ".csv"))) |> 
       dplyr::filter(dataset %in% biomod_dataset)
   } else {
-    md <- bind_years(fp = file.path(fp_md), years = years) %>%
+    md <- bind_years(fp = file.path(fp_md), years = years) |>
       dplyr::filter(dataset %in% biomod_dataset)
   }
-  
-  # -------- Compute anomaly --------
-  # if (species == "cfin") {
-  #   md <- md %>% dplyr::group_by(dataset) %>%
-  #     dplyr::mutate(mean = mean(log10(`cfin_CV_VI` + 1), na.rm = TRUE),
-  #                   sd = sd(log10(`cfin_CV_VI` + 1), na.rm = TRUE),
-  #                   anomaly = (log10(`cfin_CV_VI` + 1) - mean) / sd) %>%
-  #     dplyr::ungroup()
-  # } else if (species == "ctyp") {
-  #   md <- md %>% dplyr::group_by(dataset) %>%
-  #     dplyr::mutate(mean = mean(log10(`ctyp_total` + 1), na.rm = TRUE),
-  #                   sd = sd(log10(`ctyp_total` + 1), na.rm = TRUE),
-  #                   anomaly = (log10(`ctyp_total` + 1) - mean) / sd) %>%
-  #     dplyr::ungroup()
-  # } else if (species == "pseudo") {
-  #   md <- md %>% dplyr::group_by(dataset) %>%
-  #     dplyr::mutate(mean = mean(log10(`pseudo_total` + 1), na.rm = TRUE),
-  #                   sd = sd(log10(`pseudo_total` + 1), na.rm = TRUE),
-  #                   anomaly = (log10(`pseudo_total` + 1) - mean) / sd) %>%
-  #     dplyr::ungroup()
-  # }
   
   # -------- format columns --------
   if (species == "cfin") {
@@ -124,9 +109,15 @@ buildZoopModel <- function(version, fp_md, species, biomod_dataset, fp_covars, e
   }
   
   # -------- Exclude NAs and select columns --------
-  md <- md %>%
-    as.data.frame() %>%
-    na.exclude() %>%
+
+  md <- md |>
+    as.data.frame() |>
+    dplyr::select(station, year, month, day, lat, lon, dataset, 
+                  cfin_total, ctyp_total, pseudo_total, 
+                  wind, fetch, chl, int_chl, bots, bott, sss, sst, 
+                  lag_sst, sst_grad, uv, uv_grad, bat, dist, slope, 
+                  cfin_pa, ctyp_pa, pseudo_pa, jday, abund) |>
+    na.exclude() |>
     dplyr::mutate(season = if_else(month %in% c(1:3), 1,
                                    if_else(month %in% c(4:6), 2,
                                            if_else(month %in% c(7:9), 3, 4))))
@@ -254,7 +245,7 @@ buildZoopModel <- function(version, fp_md, species, biomod_dataset, fp_covars, e
       
       # Load projection as raster
       # Divide by 1000 to convert probabilities to [0,1] scale
-      rf_proj_raster <- raster(rfProj@proj.out@link[1]) %>%
+      rf_proj_raster <- raster(rfProj@proj.out@link[1]) |>
         `/`(1000)
       
       proj_filename <- file.path(fp_out, species, version, "Biomod", "Projections", rfProj@proj.name)
@@ -297,28 +288,6 @@ buildZoopModel <- function(version, fp_md, species, biomod_dataset, fp_covars, e
         # Save plot to hard drive
       
       ggsave(filename = file.path(fp_out, species, version, "Biomod", "Plots", paste0("rf_proj_",  i, "_", j, ".png")), width = 7, height = 7)    
-      
-      
-      # -------- Extract predicted values --------
-      month_md <- md |> dplyr::filter(month == j)
-      month_md$rf_pred <- raster::extract(rf_proj_raster, month_md$abund)
-      
-      # -------- Convert NAs to zeros --------
-      month_md$rf_pred[is.na(month_md$rf_pred)] <- 0
-      month_md$abund[is.na(month_md$abund)] <- 0
-      
-      # -------- Unlist variables --------
-      month_md$abund <- unlist(month_md$abund)
-      month_md$rf_pred <- unlist(month_md$rf_pred)
-      
-      readr::write_csv(month_md |> dplyr::select(abund, rf_pred), file.path(fp_out, species, version, "Biomod", "Projections", paste0("rf_abund_vs_pred_",  i, "_", j, ".csv")))
-      
-      # -------- Plot actual vs. predicted values --------
-      ggplot(data = month_md, aes(x = log10(abund + 1), y = rf_pred)) +
-        geom_point() +
-        ylim(c(0, 1))
-      
-      ggsave(filename = file.path(fp_out, species, version, "Biomod", "Plots", paste0("rf_actualvspred_",  i, "_", j, ".png")))
       
     }
   }
