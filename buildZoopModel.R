@@ -28,17 +28,18 @@ source("get_climatology.R")
 source("../calanus_data/Code/bind_years.R")
 
 # --- Example parameters for line-by-line function testing
-# version = "vtest.ben.nick"
-# fp_md = "../calanus_data/Data/Databases/zooplankton_covar_data"
-# species = "ctyp"
-# biomod_dataset = "ECOMON"
-# fp_covars = "../Env_Covars"
-# env_covars = c("wind", "int_chl", "sst", "jday") #, "uv_grad", "bat", "slope", "bots", "bott")
-# years = 2003:2006
-# fp_out = "../Models.Test.ben.nick"
-# threshold = 0.9
-# format_data = FALSE
-
+if (FALSE){
+  version = "vtest.ben.nick"
+  fp_md = "../calanus_data/Data/Databases/zooplankton_covar_data"
+  species = "ctyp"
+  biomod_dataset = "ECOMON"
+  fp_covars = "../Env_Covars"
+  env_covars = c("wind", "int_chl", "sst", "jday") #, "uv_grad", "bat", "slope", "bots", "bott")
+  years = 2003:2006
+  fp_out = "../Models.Test.ben.nick"
+  threshold = 0.9
+  format_data = FALSE
+}
 
 # -------- Main function --------
 #'@param version <chr> version of model
@@ -112,13 +113,20 @@ buildZoopModel <- function(version, fp_md, species, biomod_dataset, fp_covars, e
 
   md <- md |>
     as.data.frame() |>
-    dplyr::select(station, year, month, day, lat, lon, dataset, 
-                  cfin_total, ctyp_total, pseudo_total, 
-                  wind, fetch, chl, int_chl, bots, bott, sss, sst, 
-                  lag_sst, sst_grad, uv, uv_grad, bat, dist, slope, 
-                  cfin_pa, ctyp_pa, pseudo_pa, jday, abund) |>
+    dplyr::select(dplyr::any_of(c("station", "year", "month", "day", "lat", "lon", "dataset", 
+                  "cfin_total", "ctyp_total", "pseudo_total", 
+                  "wind", "fetch", "chl", "int_chl", "bots", "bott", "sss", "sst", 
+                  "lag_sst", "sst_grad", 
+                  "uv", "uv_grad", 
+                  "bat", "dist", "slope", 
+                  "cfin_pa", "ctyp_pa", 
+                  "pseudo_pa", 
+                  "jday", "abund"))) |>
     na.exclude() |>
-    dplyr::mutate(season = if_else(month %in% c(1:3), 1,
+    dplyr::mutate(jday = as.Date(paste(year, month, day, sep = "-")) |>
+                    format("%j") |>
+                    as.numeric(),
+                  season = if_else(month %in% c(1:3), 1,
                                    if_else(month %in% c(4:6), 2,
                                            if_else(month %in% c(7:9), 3, 4))))
   
@@ -245,7 +253,7 @@ buildZoopModel <- function(version, fp_md, species, biomod_dataset, fp_covars, e
       
       # Load projection as raster
       # Divide by 1000 to convert probabilities to [0,1] scale
-      rf_proj_raster <- raster(rfProj@proj.out@link[1]) |>
+      rf_proj_raster <- raster(rfProj@proj.out@link[1]) %>%
         `/`(1000)
       
       proj_filename <- file.path(fp_out, species, version, "Biomod", "Projections", rfProj@proj.name)

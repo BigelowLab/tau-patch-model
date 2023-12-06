@@ -50,6 +50,20 @@ if (!dir.exists(dir_version) | overwrite) {
 # Read in parameters (a bit redundant, but makes it traceable, ideally YAML is written in separate file)
 config <- yaml::read_yaml(filename)
 
+if (FALSE){
+  version = config$version
+  fp_md = config$fp_md
+  species = config$species
+  biomod_dataset = config$biomod_dataset
+  fp_covars = config$fp_covars
+  env_covars = config$env_covars
+  years = config$years
+  fp_out = config$fp_out
+  threshold = config$threshold
+  overwrite_proj = config$overwrite_proj
+  format_data = config$format_data
+}
+
 threshold <- buildZoopModel(version = config$version, 
              fp_md = config$fp_md, 
              species = config$species, 
@@ -59,7 +73,7 @@ threshold <- buildZoopModel(version = config$version,
              years = config$years, 
              fp_out = config$fp_out, 
              threshold = config$threshold, 
-             overwrite_proj = config$overwrite_proj
+             overwrite_proj = config$overwrite_proj,
              format_data = config$format_data)
 
 # View threshold used
