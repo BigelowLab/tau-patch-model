@@ -174,6 +174,7 @@ buildZoopModel <- function(version, fp_md, species, biomod_dataset, fp_covars, e
   
   print("--- DATA FORMATTED ----")
   
+  orig_dir = setwd(fp_out)
   # ---------------------- BUILD MODELS ----------------------
   modelOut <- BIOMOD_Modeling(bm.format = biomodData,
                               modeling.id = paste0(species, version),
@@ -186,7 +187,7 @@ buildZoopModel <- function(version, fp_md, species, biomod_dataset, fp_covars, e
                               metric.eval = c('ROC', 'TSS', 'KAPPA'),
                               scale.models = FALSE,
                               do.progress = TRUE)
-  
+  setwd(orig_dir)
   print("--- MODEL RUN ----")
   
   # ---------------------- SAVE EVALUATIONS & VARIABLE CONTRIBUTION ----------------------

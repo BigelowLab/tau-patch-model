@@ -21,6 +21,5 @@ for (github in GITHUB){
   if (!(github %in% GITHUB)) remotes::install_github(github)
 }
 
-# load all
-# commented out for now because it is sprinkled throughout the code files
-# for (p in c(CRAN, GITHUB)) library(p, character.only = TRUE)
+# source the functions
+for (p in c(CRAN, GITHUB)) library(p, character.only = TRUE)

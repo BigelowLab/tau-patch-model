@@ -25,7 +25,7 @@ format_model_data <- function(fp_data, fp_covars, fp_out,
   dir.create(path = fp_out, showWarnings = FALSE)
   # -------- Load zooplankton database --------
   # Load zooplankton database
-  db <- readr::read_csv(fp_data) |>
+  db <- readr::read_csv(fp_data, show_col_types = FALSE) |>
     filter(year >= min(years) & year <= max(years))
   # Negate non-negative longitude values
   db$lon[db$lon > 0] <- -db$lon[db$lon > 0]

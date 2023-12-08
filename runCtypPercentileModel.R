@@ -16,7 +16,7 @@ if (!dir.exists(fp_config)) {
   dir.create(fp_config)
 }
 # Whether to overwrite yaml file, if one already exists
-overwrite <- T
+overwrite <- FALSE
 
 # Example parameters for test run
 params <- list(
