@@ -17,12 +17,16 @@ source("load_covars.R")
 #'@param fp_out <chr> file path to where the output is saved
 #'@param covars <vector> vector of covariates to include in the formatted data
 #'@param years <vector> vector of years to include in the formatted data
-format_model_data <- function(fp_data, fp_covars, fp_out,
+format_model_data <- function(fp_data = "./Data/EcoMon", 
+                              fp_covars = "./Data/Environmental", 
+                              fp_out = "./Data/Formatted",
                               env_covars = "all",
-                              years = 2000:2017) {
+                              years = 2000:2023) {
   # -------- Create directory to store files --------
   # Create directory
-  dir.create(path = fp_out, showWarnings = FALSE)
+  if (!dir.exists(fp_out)) {
+    dir.create(path = fp_out, showWarnings = FALSE)
+  }
   # -------- Load zooplankton database --------
   # Load zooplankton database
   db <- readr::read_csv(fp_data, show_col_types = FALSE) |>

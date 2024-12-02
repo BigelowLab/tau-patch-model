@@ -38,7 +38,7 @@ if (FALSE){
   years = 2003:2006
   fp_out = "../Models.Test.ben.nick"
   threshold = 0.9
-  format_data = FALSE
+  format_data = TRUE
 }
 
 # -------- Main function --------
